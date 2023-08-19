@@ -1,5 +1,4 @@
-# Genshin-Impact-Assistant
+# Genshin Impact: Assistant
 
-# For Now look at the Preface File
-
-# News will be coming soon
+## For Now look at the Preface File
+News will be coming soon
