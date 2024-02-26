@@ -1,7 +1,6 @@
 import enka
 import asyncio
-import pprint
-
+# ---------------------------------------------------- #
 # Afif UID: 607566990
 # Pheu UID: 701473745
 # Andrew UID: 602115277
@@ -10,7 +9,19 @@ import pprint
 # Okami UID: 600383198
 # Sora UID: 606380789
 # ---------------------------------------------------- #
+
+"""
+This function returns basic information
+of the request user
+
+Parameters:
+uid (int) The players UID
+
+Returns:
+None
+"""
 async def userInfo(uid) -> None:
+   await connection_Test(uid)
    async with enka.EnkaAPI() as api:
       response = await api.fetch_showcase(uid)
       print("=== Player Info ===")
@@ -25,7 +36,19 @@ async def userInfo(uid) -> None:
       print("===================")
       
 
+"""
+This function returns character
+information is a general basis
+
+Parameters:
+uid (int) The players UID
+name (string) The character to be viewed
+
+Returns:
+None
+"""
 async def characterInfo(uid, name):
+   await connection_Test(uid)
    async with enka.EnkaAPI() as api:
       response = await api.fetch_showcase(uid)
       for character in response.characters:
@@ -33,12 +56,25 @@ async def characterInfo(uid, name):
             return character
    return None
 
-async def artifact_Extractor(uid, name): #Working on this
+
+"""
+This function returns information
+of each artifact from the specified
+character that's requested
+
+Parameters:
+uid (int) The players UID
+name (string) The character to be viewed
+
+Returns:
+combined_info (dict) A dictionary of all the artifact information
+"""
+async def artifact_Extractor(uid, name):
+   await connection_Test(uid)
    async with enka.EnkaAPI() as api:
       response = await api.fetch_showcase(uid)
       for characters in response.characters:    #
          if(characters.name.lower() == name.lower()):
-            # squared_values = {key: value**2 for key, value in dict_example.items()} # Example
             artifactName = {characters.name: {artifact.name for artifact in characters.artifacts}}  
             artifactMainStat = {f"{artifact.name} Stats": [artifact.main_stat.name, artifact.main_stat.formatted_value] for artifact in characters.artifacts}
             artifactSubStat = {f"{artifact.name} Sub Stats": [(substat.name, substat.formatted_value) for substat in artifact.sub_stats] for artifact in character.artifacts}
@@ -46,12 +82,51 @@ async def artifact_Extractor(uid, name): #Working on this
             combined_info = {**artifactName, **artifactMainStat, **artifactSubStat}
             return combined_info      
 
+"""
+This function returns information
+of the weapon from the specified
+character that's requested
 
+Parameters:
+uid (int) The players UID
+name (string) The character to be viewed
 
-uid = 602115277
-pp = pprint.PrettyPrinter(indent=2)
-asyncio.run(userInfo(uid))
-character = asyncio.run(characterInfo(uid, 'Furina'))
+Returns:
+combined_info (DoL) A dictionary of List that stores information on the weapon
+"""
+async def weapon_Extractor(uid, name):
+   await connection_Test(uid)
+   weaponInfo = {}
+   async with enka.EnkaAPI() as api:
+      response = await api.fetch_showcase(uid)
+      for character in response.characters:
+        if(character.name.lower() == name.lower()):
+            weapon = character.weapon
+            weaponInfo = {weapon.name: [weapon.level, weapon.rarity, weapon.refinement]}
+            return weaponInfo
 
-artifact = asyncio.run(artifact_Extractor(uid, 'Qiqi'))
-pp.pprint(artifact)
+"""
+This function makes sure that
+EnkaNetwork is up and running
+in-order to retrieve data
+
+Parameters:
+uid (int) The players UID
+
+Returns:
+combined_info (DoL) A dictionary of List that stores information on the weapon
+"""
+async def connection_Test(uid) -> None:
+    async with enka.EnkaAPI() as api:
+        try:
+            response = await api.fetch_showcase(uid)
+        except enka.exceptions.PlayerDoesNotExistError:
+            return print("Player does not exist.")
+        except enka.exceptions.GameMaintenanceError:
+            return print("Game is in maintenance.")
+
+# ==========================
+# How to test code Below
+# test = asyncio.run(userInfo(606380789))
+# print(test)
+# ==========================
