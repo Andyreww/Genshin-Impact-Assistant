@@ -33,31 +33,25 @@ async def characterInfo(uid, name):
             return character
    return None
 
-def artifact_Extractor(character): #Error Here
-    artifact_info = {}
-    for artifact in character.artifacts:
-        artifact_info[artifact.name] = {
-            'item_id': artifact.item_id,
-            'main_stat': {
-                'type': artifact.main_stat.type,
-                'value': artifact.main_stat.value,
-                'name': artifact.main_stat.name
-            },
-            'sub_stats': [{
-                'type': stat.type,
-                'value': stat.value,
-                'name': stat.name
-            } for stat in artifact.sub_stats],
-            'set_name': artifact.set_name
-        }
-    return artifact_info
+async def artifact_Extractor(uid, name): #Working on this
+   async with enka.EnkaAPI() as api:
+      response = await api.fetch_showcase(uid)
+      for characters in response.characters:    #
+         if(characters.name.lower() == name.lower()):
+            # squared_values = {key: value**2 for key, value in dict_example.items()} # Example
+            artifactName = {characters.name: {artifact.name for artifact in characters.artifacts}}  
+            artifactMainStat = {f"{artifact.name} Stats": [artifact.main_stat.name, artifact.main_stat.formatted_value] for artifact in characters.artifacts}
+            artifactSubStat = {f"{artifact.name} Sub Stats": [(substat.name, substat.formatted_value) for substat in artifact.sub_stats] for artifact in character.artifacts}
+
+            combined_info = {**artifactName, **artifactMainStat, **artifactSubStat}
+            return combined_info      
 
 
 
 uid = 602115277
-pp = pprint.PrettyPrinter(indent=4)
+pp = pprint.PrettyPrinter(indent=2)
 asyncio.run(userInfo(uid))
 character = asyncio.run(characterInfo(uid, 'Furina'))
-artifact = asyncio.run(artifact_Extractor(character))
 
-print(artifact)
+artifact = asyncio.run(artifact_Extractor(uid, 'Qiqi'))
+pp.pprint(artifact)
