@@ -77,8 +77,7 @@ async def artifact_Extractor(uid, name):
          if(characters.name.lower() == name.lower()):
             artifactName = {characters.name: {artifact.name for artifact in characters.artifacts}}  
             artifactMainStat = {f"{artifact.name} Stats": [artifact.main_stat.name, artifact.main_stat.formatted_value] for artifact in characters.artifacts}
-            artifactSubStat = {f"{artifact.name} Sub Stats": [(substat.name, substat.formatted_value) for substat in artifact.sub_stats] for artifact in character.artifacts}
-
+            artifactSubStat = {f"{artifact.name} Sub Stats": [(substat.name, substat.formatted_value) for substat in artifact.sub_stats] for artifact in characters.artifacts}
             combined_info = {**artifactName, **artifactMainStat, **artifactSubStat}
             return combined_info      
 
