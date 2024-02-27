@@ -11,7 +11,7 @@ import asyncio
 # ---------------------------------------------------- #
 
 """
-This function returns basic information
+This function prints basic information
 of the request user
 
 Parameters:
@@ -34,7 +34,22 @@ async def userInfo(uid) -> None:
       characters = [character.name for character in response.characters]
       print(f"Characters: {characters}")
       print("===================")
-      
+
+"""
+This function returns the players
+in-game name
+
+Parameters:
+uid (int) The players UID
+
+Returns:
+string
+"""    
+async def userName(uid) -> None:
+   await connection_Test(uid)
+   async with enka.EnkaAPI() as api:
+      response = await api.fetch_showcase(uid)
+      return response.player.nickname
 
 """
 This function returns character
