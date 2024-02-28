@@ -1,5 +1,6 @@
 import enka
 import asyncio
+import string
 # ---------------------------------------------------- #
 # Afif UID: 607566990
 # Pheu UID: 701473745
@@ -88,14 +89,33 @@ async def artifact_Extractor(uid, name):
    await connection_Test(uid)
    async with enka.EnkaAPI() as api:
       response = await api.fetch_showcase(uid)
-      for characters in response.characters:    #
+      for characters in response.characters:    
          if(characters.name.lower() == name.lower()):
-            artifactName = {characters.name: {artifact.name for artifact in characters.artifacts}}  
-            artifactMainStat = {f"{artifact.name} Stats": [artifact.main_stat.name, artifact.main_stat.formatted_value] for artifact in characters.artifacts}
-            artifactSubStat = {f"{artifact.name} Sub Stats": [(substat.name, substat.formatted_value) for substat in artifact.sub_stats] for artifact in characters.artifacts}
+            artifactName = {characters.name: {artifact.name.replace("'", "") for artifact in characters.artifacts}}  
+            artifactMainStat = {f"{artifact.name}": [artifact.main_stat.name, artifact.main_stat.formatted_value] for artifact in characters.artifacts} #Main Stats
+            artifactSubStat = {f"{artifact.name} ss": [(substat.name, substat.formatted_value) for substat in artifact.sub_stats] for artifact in characters.artifacts} #Sub Stats
             combined_info = {**artifactName, **artifactMainStat, **artifactSubStat}
             return combined_info      
 
+"""
+This function returns the main
+stats of a artifact in a tuple
+
+Parameters:
+uid (int) The players UID
+name (string) The character to be viewed
+
+Returns:
+List object
+"""
+async def artifact_MainStat(uid, name):
+   await connection_Test(uid)
+   async with enka.EnkaAPI() as api:
+      response = await api.fetch_showcase(uid)
+      for characters in response.characters:
+         if(characters.name.lower() == name.lower()):
+            aMS = [(artifact.main_stat.name, artifact.main_stat.formatted_value) for artifact in characters.artifacts] #Main Stats
+      return aMS
 """
 This function returns information
 of the weapon from the specified
