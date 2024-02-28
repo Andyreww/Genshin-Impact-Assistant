@@ -27,4 +27,8 @@ ArtifactsDF = ArtifactsDF.rename({0: 'Artifacts'}, axis='columns')
 print(tabulate(ArtifactsDF, headers='keys', tablefmt='psql'))
 
 #Creating Stats Data Frame
-stats_Retrieve = characterDict[] #Stopped here for the day
+
+print(asyncio.run(aF.artifact_MainStat(uid, character_Name))) #Created Workaround
+
+#Now need to seperate List of Tuple into a pandas DF into seperate columns
+
