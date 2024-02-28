@@ -1,6 +1,29 @@
-# Genshin Impact: Assistant
+## What is this Repo
+Genshin Impact: Assistant is a project that will utilize OpenAI and EnkaNetworks API in order to give users based recommendations for their in-game characters tailored for them.
 
-For Now look at the Preface File
+## What Im currently working on
+- Transforming user in game data into a pandas Data Frame
 
+## To-Do:
+- Put information into a SQL db
+- access OpenAI
+- Clean Code/Fix Bugs
+- Create Test/Edge Cases
+- Create better documentation
+- Create an app using FlutterFlow
+- Work on implementing more features
 
-News will be coming soon
+## Plan:
+
+I am currently a University Student so I will work on this whenever I have the time however I aim to incoporate a new function or clean code once per day.
+
+The goal is to have this done by August - September 2024 or early 2025
+
+## Questions
+
+If you have any questions dont be scared to come and talk to me
+
+```
+Email: ajangulo8@gmail.com
+Discord: andyreew
+```
