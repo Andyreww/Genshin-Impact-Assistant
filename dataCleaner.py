@@ -19,16 +19,23 @@ characterDict = asyncio.run(aF.artifact_Extractor(uid, character_Name))
 
 # Creating Artifact DataFrame
 artifact_Retrieve = characterDict[character_Name]
-pp.pprint(artifact_Retrieve)
-ArtifactsDF = pd.DataFrame.from_dict(artifact_Retrieve)
-ArtifactsDF = ArtifactsDF.rename({0: 'Artifacts'}, axis='columns')
 
-# Allows us to view the artifact pandas Data Frame
-print(tabulate(ArtifactsDF, headers='keys', tablefmt='psql'))
 
-#Creating Stats Data Frame
+# Issue on the order this is printing out
+# Will cause issues when assigning data
+# to the dataframe
+print(artifact_Retrieve)
+print([key for key in artifact_Retrieve])
+ArtifactsDF = pd.DataFrame(artifact_Retrieve, columns=['Artifacts'])# Print the DataFrame
+print(tabulate(ArtifactsDF, headers='keys', tablefmt='pretty'))
 
-print(asyncio.run(aF.artifact_MainStat(uid, character_Name))) #Created Workaround
+# Creating Stats Data Frame
+# Main Stat DF
+mainStat_Retireve = asyncio.run(aF.artifact_MainStat(uid, character_Name)) #Created Workaround
 
+mainStatDF = pd.DataFrame(mainStat_Retireve, columns=['Stat', 'Value'])
+print(tabulate(mainStatDF, headers='keys', tablefmt='pretty'))
 #Now need to seperate List of Tuple into a pandas DF into seperate columns
+
+
 
