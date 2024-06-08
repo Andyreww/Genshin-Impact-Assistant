@@ -26,6 +26,10 @@ async def userInfo(uid) -> str:
     async with enka.EnkaAPI() as api:
         response = await api.fetch_showcase(uid)
         characters = [character.name for character in response.characters]
+
+        if len(characters) == 0:
+           return "ERROR"
+        
         info = f"""
         === Player Info ===
         Nickname: {response.player.nickname}
