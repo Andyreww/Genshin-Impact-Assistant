@@ -12,29 +12,32 @@ import string
 # ---------------------------------------------------- #
 
 """
-This function prints basic information
-of the request user
+This function returns a string of basic information
+of the requested user
 
 Parameters:
 uid (int) The players UID
 
 Returns:
-None
+String
 """
-async def userInfo(uid) -> None:
-   await connection_Test(uid)
-   async with enka.EnkaAPI() as api:
-      response = await api.fetch_showcase(uid)
-      print("=== Player Info ===")
-      print(f"Nickname: {response.player.nickname}")
-      print(f"Level: {response.player.level}")
-      print(f"Signature: {response.player.signature}")
-      print(f"Achievements: {response.player.achievements}")
-      print(f"Abyss Floor: {response.player.abyss_floor}")
-      
-      characters = [character.name for character in response.characters]
-      print(f"Characters: {characters}")
-      print("===================")
+async def userInfo(uid) -> str:
+    await connection_Test(uid)
+    async with enka.EnkaAPI() as api:
+        response = await api.fetch_showcase(uid)
+        characters = [character.name for character in response.characters]
+        info = f"""
+        === Player Info ===
+        Nickname: {response.player.nickname}
+        Level: {response.player.level}
+        Signature: {response.player.signature}
+        Achievements: {response.player.achievements}
+        Abyss Floor: {response.player.abyss_floor}
+        Characters: {characters}
+        ===================
+        """
+        return info
+
 
 """
 This function returns the players
@@ -161,6 +164,6 @@ async def connection_Test(uid) -> None:
 
 # ==========================
 # How to test code Below
-# test = asyncio.run(userInfo(606380789))
+# test = asyncio.run(weapon_Extractor(602115277, 'Furina'))
 # print(test)
 # ==========================
