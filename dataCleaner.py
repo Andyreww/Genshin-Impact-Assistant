@@ -10,16 +10,12 @@ def main():
         print("Not a Valid UID")
         return -1
     
-    character = input("What character are you requesting for: ")
-
-    # Creating Pandas Dataframe to handle the data better
+    if(asyncio.run(aF.userInfo(uid)) == "ERROR"):
+        print("Error: No Characters Found")
+        return -1
     
-    # Creating Player Table
-    uidDF = pd.DataFrame([uid], columns=['UID'])
-    uidDF['UID'] = uidDF['UID']
-    print(tabulate(uidDF, headers='keys', tablefmt='psql'))
+    character = input("What character are you requesting for: ")
     #------------------------------------------------------------#
-
     # Creating Player Info Table
     playerInfo = asyncio.run(aF.userInfo(uid))
     lines = playerInfo.split('\n')[2:-2]
@@ -33,14 +29,37 @@ def main():
         elif key in ['Level', 'Achievements', 'Abyss Floor']:
             value = int(value)  # Convert string representation of integer to actual integer
         data[key] = [value]
-    
+
+    # Insert 'uid' at the top of the dictionary
+    data = {'UID': [uid]} | data
+
     playerInfoDF = pd.DataFrame(data)
 
     # Converting data into cleaned DataFrame
     playerInfoDF = playerInfoDF.T
     playerInfoDF.columns = ['Player Info']
 
+    # Remove 'Characters' index from the DataFrame
+    playerInfoDF = playerInfoDF.drop('        Characters', errors='ignore')
+
     print(tabulate(playerInfoDF, headers='keys', tablefmt='psql'))
+
+
+    #------------------------------------------------------------#
+    #CharactersDF
+    # Find the start and end of the characters list
+    start = playerInfo.find('[')
+    end = playerInfo.find(']')
+    characters_str = playerInfo[start:end+1]
+    characters = ast.literal_eval(characters_str)
+    charactersDF = pd.DataFrame({'UID': uid, 'Character': characters})
+
+
+
+    print(tabulate(charactersDF, headers='keys', tablefmt='psql'))
+
+
+
     #------------------------------------------------------------#
 
     artifactInfo = asyncio.run(aF.artifact_Extractor(uid, character))
@@ -107,6 +126,7 @@ def main():
     #                                           #
     # - uidDF : players UID                     #
     # - playerInfoDF : Info of Player           #
+    # - CharactersDF : Table of Characters      #
     # - main_stats_df : main artifact stat info #
     # - substats_df : artifact substat info     #
     # - weaponDF : character Weapon Info        #
