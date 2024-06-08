@@ -10,6 +10,7 @@ def main():
         print("Not a Valid UID")
         return -1
     
+    # Edgecase if player has no characters
     if(asyncio.run(aF.userInfo(uid)) == "ERROR"):
         print("Error: No Characters Found")
         return -1
@@ -124,7 +125,6 @@ def main():
     #-------------------------------------------#
     #              All Tables                   #
     #                                           #
-    # - uidDF : players UID                     #
     # - playerInfoDF : Info of Player           #
     # - CharactersDF : Table of Characters      #
     # - main_stats_df : main artifact stat info #
