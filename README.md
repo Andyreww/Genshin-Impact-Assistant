@@ -2,10 +2,10 @@
 Genshin Impact: Assistant is a project that will utilize OpenAI and EnkaNetworks API in order to give users based recommendations for their in-game characters tailored for them.
 
 ## What Im currently working on
-- Fixing Database Bugs (Involving inserting duplicates)
+- Fixing Database Bugs (Involving inserting duplicates with weapons table)
+- determining with AI Model to use
 
 ## To-Do:
-- access OpenAI
 - Clean Code/Fix Bugs
 - Create Test/Edge Cases
 - Create better documentation
