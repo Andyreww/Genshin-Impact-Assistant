@@ -4,7 +4,8 @@ import asyncio
 import ast
 import sqlite3
 import sqlalchemy
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy.dialects.sqlite import insert
 from tabulate import tabulate
 
 def main():
@@ -103,8 +104,9 @@ def main():
     artifact_id_map = main_stats_df[['Artifact', 'Artifact ID']].set_index('Artifact').to_dict()['Artifact ID']
     substats_df['Artifact ID'] = substats_df['Artifact'].map(artifact_id_map)
 
-    print(tabulate(main_stats_df, headers='keys', tablefmt='psql'))
-    print(tabulate(substats_df, headers='keys', tablefmt='psql'))
+    # To De-Bug
+    # print(tabulate(main_stats_df, headers='keys', tablefmt='psql'))
+    # print(tabulate(substats_df, headers='keys', tablefmt='psql'))
     #------------------------------------------------------------#
 
     # Weapons DF
@@ -128,7 +130,7 @@ def main():
 
 
     #-------------------------------------------#
-    #              All Tables                   #
+    #              All DF Tables                #
     #                                           #
     # - playerInfoDF : Info of Player           #
     # - charactersDF : Table of Characters      #
@@ -144,6 +146,7 @@ def main():
     #------------------------------------------------------------#
 
 
+    # Creating the database
     engine = create_engine('sqlite:///GenshinPlayerStats.db')
     metadata = MetaData()
 
@@ -159,24 +162,26 @@ def main():
 
     Characters = Table('Characters', metadata,
         Column('UID', String, ForeignKey('Users.UID')),
-        Column('CharacterName', String)
+        Column('CharacterName', String, unique=True, primary_key=True)
     )
 
     Artifacts = Table('Artifacts', metadata,
-        Column('ArtifactID', String, primary_key=True),
+        Column('ArtifactID', String),
         Column('Character', String, ForeignKey('Characters.CharacterName')),
         Column('Artifact', String),
         Column('Stat', String),
-        Column('Amount', String)
+        Column('Amount', String),
+        PrimaryKeyConstraint('ArtifactID', 'Character')
     )
 
     Substats = Table('Substats', metadata,
-        Column('SubstatID', String, primary_key=True),
+        Column('SubstatID', String),
         Column('Character', String, ForeignKey('Characters.CharacterName')),
         Column('Artifact', String, ForeignKey('Artifacts.Artifact')),
         Column('Stat', String),
         Column('Amount', String),
-        Column('ArtifactID', String, ForeignKey('Artifacts.ArtifactID'))
+        Column('ArtifactID', String, ForeignKey('Artifacts.ArtifactID')),
+        PrimaryKeyConstraint('SubstatID', 'Character', 'ArtifactID')
     )
 
     Weapons = Table('Weapons', metadata,
@@ -188,26 +193,35 @@ def main():
 
     # Create the tables
     metadata.create_all(engine)
+
+    # Define dataframes
     charactersDF.columns = ['UID', 'CharacterName']
     main_stats_df.columns = ['ArtifactID', 'Character', 'Artifact', 'Stat', 'Amount']
     substats_df.columns = ['SubstatID', 'Character', 'Artifact', 'Stat', 'Amount', 'ArtifactID']
-    
-    # Errors here (Fix Later)
-    # # Drop duplicates based on 'ArtifactID'
-    # playerInfoDF.drop_duplicates(keep='first', inplace=True)
-    # charactersDF.drop_duplicates(keep='first', inplace=True)
-    # main_stats_df.drop_duplicates(subset='ArtifactID', keep='first', inplace=True)
-    # substats_df.drop_duplicates(keep='first', inplace=True)
-    # weaponDF.drop_duplicates(keep='first', inplace=True)
 
+    # Function that helps with duplicates and updates data if user decides to update their build
+    def upsert_data(table, conn, keys, data_iter):
+        for data in data_iter:
+            insert_stmt = insert(table).values(data)
+            update_stmt = insert_stmt.on_conflict_do_update(
+                index_elements=table.primary_key.columns,
+                set_={key: getattr(insert_stmt.excluded, key) for key in keys}
+            )
+            #print(update_stmt.compile(engine))  # Debug print
+            conn.execute(update_stmt)
 
     # Write dataframes to SQL
-    playerInfoDF.to_sql('Users', engine, if_exists='replace', index=True) #Users Database shows basic player info
-    charactersDF.to_sql('Characters', engine, if_exists='append', index=False) #Character Database
-    main_stats_df.to_sql('Artifacts', engine, if_exists='append', index=False) #Main Stat Artifacts
-    substats_df.to_sql('Substats', engine, if_exists='append', index=False) #Substats for Main Artifacts
-    weaponDF.to_sql('Weapons', engine, if_exists='append', index=False) #Weapon Stats
+    with engine.begin() as conn:
+        charactersDF.to_sql('Characters', conn, if_exists='replace', index=False)
+        
+        upsert_data(Artifacts, conn, main_stats_df.columns.tolist(), main_stats_df.to_dict(orient='records'))
+        upsert_data(Substats, conn, substats_df.columns.tolist(), substats_df.to_dict(orient='records'))
+        
 
+        # Adds duplicates but will fix later (for now everything works as expected)
+        weaponDF.to_sql('Weapons', conn, if_exists='append', index=False) # Weapon Information
+
+    playerInfoDF.to_sql('Users', engine, if_exists='replace', index=True)  # Users Database shows basic player info
 
 
 
