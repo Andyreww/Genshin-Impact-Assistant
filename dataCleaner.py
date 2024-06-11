@@ -2,8 +2,6 @@ import assist_Functions as aF
 import pandas as pd
 import asyncio
 import ast
-import sqlite3
-import sqlalchemy
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.dialects.sqlite import insert
 from tabulate import tabulate
@@ -188,7 +186,8 @@ def main():
         Column('Character', String, ForeignKey('Characters.CharacterName')),
         Column('Stat', String),
         Column('Value', String),
-        Column('Weapon', String)
+        Column('Weapon', String),
+        PrimaryKeyConstraint('Character', 'Weapon', 'Stat')  # Adding Primary Key Constraint
     )
 
     # Create the tables
@@ -212,19 +211,14 @@ def main():
 
     # Write dataframes to SQL
     with engine.begin() as conn:
-        charactersDF.to_sql('Characters', conn, if_exists='replace', index=False)
+        charactersDF.to_sql('Characters', conn, if_exists='replace', index=False) 
         
-        upsert_data(Artifacts, conn, main_stats_df.columns.tolist(), main_stats_df.to_dict(orient='records'))
-        upsert_data(Substats, conn, substats_df.columns.tolist(), substats_df.to_dict(orient='records'))
-        
+        upsert_data(Artifacts, conn, main_stats_df.columns.tolist(), main_stats_df.to_dict(orient='records')) #Upserts for Artifact Info
+        upsert_data(Substats, conn, substats_df.columns.tolist(), substats_df.to_dict(orient='records')) #Upserts for Substat Info
+        upsert_data(Weapons, conn, weaponDF.columns.tolist(), weaponDF.to_dict(orient='records'))  # Upsert for Weapons
 
-        # Adds duplicates but will fix later (for now everything works as expected)
-        weaponDF.to_sql('Weapons', conn, if_exists='append', index=False) # Weapon Information
-
-    playerInfoDF.to_sql('Users', engine, if_exists='replace', index=True)  # Users Database shows basic player info
-
-
-
+    # Write Users table data
+    playerInfoDF.to_sql('Users', engine, if_exists='replace', index=True)
 
 if __name__ == "__main__":
     main()
