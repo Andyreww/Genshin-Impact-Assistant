@@ -6,6 +6,7 @@ Genshin Impact: Assistant is a project that will utilize OpenAI and EnkaNetworks
 - Create Test/Edge Cases
 
 **UPDATE (6/11/24)**: Switching direction from OpenAI API -> Gemini API since OpenAI isnt free to use
+
 **UPDATE (6/13/24)**: The AI is functional however it might output incorrect answers. However it works as intended and the information outputted is quite stable
 
 ## To-Do:
