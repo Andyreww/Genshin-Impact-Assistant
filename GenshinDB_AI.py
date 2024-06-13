@@ -1,11 +1,28 @@
 import google.generativeai as genai
 import sqlite3
+import pandas as pd
 import os
 from dotenv import load_dotenv
 
-print("Gemini Version:", genai.__version__)
+# De-Bug Gemini Version
+# print("Gemini Version:", genai.__version__)
+#--------------------------------------------------------------------------------#
+# Gathering Data to help AI with context
 
+# All Genshin Impact Characters
+character_info_filepath = os.path.join("C:\\Users\\ajang\\OneDrive\\Desktop\\Genshin-Impact-Assistant\\Context", "genshin.csv")
+characterInfo_fp = pd.read_csv(character_info_filepath, encoding='latin1')
+character_dict_context = characterInfo_fp.to_dict(orient='records')
 
+# All Weapon Information
+weapon_info_filepath = os.path.join("C:\\Users\\ajang\\OneDrive\\Desktop\\Genshin-Impact-Assistant\\Context", "genshin_weapons_v6.csv")
+weaponInfo_fp = pd.read_csv(weapon_info_filepath, encoding='latin1')
+weapon_dict_context = weaponInfo_fp.to_dict(orient='records')
+
+# All Free 2 Play Weapons
+F2P_weapons_filepath = os.path.join("C:\\Users\\ajang\\OneDrive\\Desktop\\Genshin-Impact-Assistant\\Context", "F2P_genshin_weapons.csv")
+F2P_weaponInfo_fp = pd.read_csv(F2P_weapons_filepath, encoding='latin1')
+F2P_weapon_dict_context = F2P_weaponInfo_fp.to_dict(orient='records')
 #--------------------------------------------------------------------------------#
 # Getting data from .env file holding API key
 load_dotenv("creds.env")
@@ -93,37 +110,51 @@ safety_settings = [
 ]
 
 model = genai.GenerativeModel(
-    model_name = "gemini-pro",
+    model_name = "gemini-1.5-flash",
     generation_config=generation_config,
     safety_settings=safety_settings
 )
+chat = model.start_chat(history=[])
 #--------------------------------------------------------------------------------#
 # Database AI
 
-prompt_p1 = [
-    f"You are an expert in converting English Questions to SQL code! The SQL database has the name GenshinPlayerStats.db and has the following schema {schema_str},\n"
-    f"Example 1 - If a user asks about their character artifacts make sure to look into the Artifacts table and the Substats table in order\n"
-    f"to distinguish whose artifacts belong to whom. You have an ArtifactID and character column to distinguish it. Once you do find the values, make sure to\n"
-    f"only grab the columns pertaining to the character requested for and join both the Artifact table and the Substat table. Most of the time the user\n"
-    f"will just ask information pertaining to their character; a name could be something like 'Furina' or 'Hu Tao', pretty much the names of characters within\n"
-    f"the game Genshin Impact characters.\n Example 2 - What is the current weapon of my character?, the SQL command will be something like this\n"
-    f"SELECT Weapon FROM Weapons WHERE Character = 'character name here' LIMIT 1\n"
-    f"Example 2 - What is the current artifacts information for my character?, the SQL command will be something like this\n"
-    f"SELECT a.Character, a.Artifact, a.Stat AS MainStat, a.Amount AS MainStatAmount, s.Stat AS SubStat, s.Amount AS SubStatAmount FROM Artifacts a JOIN Substats s ON a.ArtifactID = s.ArtifactID WHERE a.Character = 'character name here'\n"
-    f"Example 3 - What is the name of my artifacts for my character?, the SQL command will be something like this\n"
-    f"SELECT Artifact FROM Artifacts WHERE Character = 'Furina'",
-    f"Just create a SQL Query based on the schema and the user's request and make sure its in 1 line and in the format of a string"
-]
+prompt_p1 = (
+    "JUST GIVE ME THE SQL CODE, DONT GIVE AN EXPLANATION ON HOW TO IMPROVE IT JUST GIVE ME THE CODE FOR THE QUERY"
+    "You are an expert in converting English Questions to SQL code! The SQL database has the name GenshinPlayerStats.db and has the following schema " + schema_str + ",\n"
+    "Example 1 - If a user asks about their character artifacts make sure to look into the Artifacts table and the Substats table in order\n"
+    "to distinguish whose artifacts belong to whom. You have an ArtifactID and character column to distinguish it. Once you do find the values, make sure to\n"
+    "only grab the columns pertaining to the character requested for and join both the Artifact table and the Substat table. Most of the time the user\n"
+    "will just ask information pertaining to their character; a name could be something like 'Furina' or 'Hu Tao', pretty much the names of characters within\n"
+    "the game Genshin Impact characters.\n Example 2 - What is the current weapon of my character?, the SQL command will be something like this\n"
+    "SELECT Weapon FROM Weapons WHERE Character = 'character name here' LIMIT 1\n"
+    "Example 2 - What is the current artifacts information for my character?, the SQL command will be something like this\n"
+    "SELECT a.Character, a.Artifact, a.Stat AS MainStat, a.Amount AS MainStatAmount, s.Stat AS SubStat, s.Amount AS SubStatAmount FROM Artifacts a JOIN Substats s ON a.ArtifactID = s.ArtifactID WHERE a.Character = 'character name here'\n"
+    "Example 3 - What is the name of my artifacts for my character?, the SQL command will be something like this\n"
+    "SELECT Artifact FROM Artifacts WHERE Character = 'Furina',"
+    "Example 4 - Based on my artifacts what would be a good Weapon to match Furina?, the SQL command will be something like this\n"
+    "SELECT a.Character, a.Artifact, a.Stat AS MainStat, a.Amount AS MainStatAmount, s.Stat AS SubStat, s.Amount AS SubStatAmount FROM Artifacts a JOIN Substats s ON a.ArtifactID = s.ArtifactID WHERE a.Character = 'character name here'\n"
+    "Example 5 - What are all of the names of all of the characters I own?, the SQL command will be something like this\n"
+    "SELECT CharacterName FROM Characters,"
+    "Example 6 - What are the names of all the Characters I have?, the SQL command will be something like this\n"
+    "SELECT CharacterName FROM Characters,"
+    "Just create a SQL Query based on the schema and the user's request and make sure its in 1 line."
+    "Also the question might be a bit too broad so if the user is asking something such as 'how they can improve their character' then just return information of the Artifacts and Substats table\n"
+    "if the user is asking how they can improve their weapon just return data from the Weapons table. What I am trying to say is that if part of the question has no co-relation to the SQL DB then try to approximate what data to search for but rememer to follow the schema given"
+)
 
 
 
 
-question = "How can I improve my Hu Tao to make her stronger"
 
-prompt_parts = [prompt_p1[0], question]
-response = model.generate_content(prompt_parts)
+
+question = "Can you compare my Zhongli and Hu Tao Artifacts, which character should I focus on more?"
+
+#prompt_parts = [prompt_p1[0], question]
+#response = model.generate_content(prompt_parts)
+response = chat.send_message(prompt_p1 + question)
+
 # To De-Bug
-# print(response.text)
+# print("SQL Query:",response.text)
 # print(type(response.text))
 
 # Converts AI SQL Query to Readable SQL Code
@@ -136,31 +167,19 @@ def make_one_liner(sql_query):
 
 
 one_liner_query = make_one_liner(response.text)
+# To De-Bug
+# print("Through One Liner Function:", one_liner_query)
 
 # To De-Bug
-#print(one_liner_query)
+# print(one_liner_query)
 
 
 # Example usage:
 results = execute_sql_query(one_liner_query)
-#formatted_data = [item[0] for item in results]
 
-# Edge Case if were going into both Artifacts table and Substat table.
-# Cleans the response visually
-characters = {}
-keywords = {"ArtifactID"}
+# To De-Bug
+# print("SQL INFO:", results)
 
-if any(keyword in results for keyword in keywords):
-    try:
-        for row in results:
-            character, artifact, main_stat, main_stat_amount, sub_stat, sub_stat_amount = row
-            if character not in characters:
-                characters[character] = {}
-            if artifact not in characters[character]:
-                characters[character][artifact] = {'MainStat': {main_stat: main_stat_amount}, 'SubStats': []}
-            characters[character][artifact]['SubStats'].append({sub_stat: sub_stat_amount})
-    except Exception:
-        pass
 
 # To De-Bug
 #print(results)
@@ -168,26 +187,33 @@ if any(keyword in results for keyword in keywords):
 
 #--------------------------------------------------------------------------------#
 # Answering the Users Question
-# Issue here
-prompt_final = [
-    f"You are a Genshin Impact Assistant aimed to help the user better improve their characters or just help them on their journey\n"
-    f"through Genshin Impact. You will be provided the following database information that pertains to information the user is asking for which would\n"
-    f"be this: {results}. That is data taken from a SQL Database that contains information of the player who is asking you questions about their Genshin\n"
-    f"Impact accounts or either asking about a friends Genshin Impact Account. Your goal here is to digest all of this information and give an answer to the user\n"
-    f"by acting like a friend and roleplay as if you are in the world of Teyvat which is the world of Genshin Impact. Please dont be too analytical with your responses,\n"
-    f"talk to them like your there to help them in a friendly gesture and keep the responses to about 1-3 sentences in a string format."
-]
 
-prompt_parts_f = [prompt_final[0], question]
-response2 = model.generate_content(prompt_parts_f)
-if not response2._done:
-    print("Error occurred during generation.")
+assistant_instructions = (
+    "You are a Genshin Impact Assistant named 'TeyvMate' here to help users improve their characters and assist them on their Genshin Impact journey.\n"
+    f"You will be provided with the following database information: {results} WHICH IS THE PLAYERS INFORMATION AND RELATED TO THE QUESTION THEY ARE ASKING. Additionally, here is context for all the characters within Genshin regarding their weapon type and etc {character_dict_context} in a Dictionary format in Python, and finally here is context about each and every weapon in Genshin Impact {weapon_dict_context} in a Dictionary format in Python. This data comes from a SQL Database containing information\n"
+    "about the player or their friend's Genshin Impact account. Your goal is to digest this information and provide friendly, roleplaying answers\n"
+    "as if you are in the world of Teyvat however this time be analytic and provide multiple answers with explanation in a list format, the world of Genshin Impact. Be quirky and fun like Paimon, but don't impersonate her, for reference I named you 'TeyvMate'.\n"
+    "Avoid being too analytical; instead, speak to the user in a friendly manner, giving concise responses (MAX 5 sentences).\n"
+    "Additionally, try to recommend an improvement in a string format.\n"
+    "Here are some example conversations:\n"
+    "Example 1 - What weapon do you recommend for Keqing?\n"
+    "Keqing, the Thundering Might of the Liyue Qixing, deserves a weapon that matches her swift strikes and electrifying personality! The Lion's Roar is a great choice for amplifying her Electro damage. If you're looking for a more refined option, the Aquila Favonia grants both damage and healing capabilities, making it a versatile companion for Keqing's battles.\n"
+    "Example 2 - How should I build artifacts for Venti?\n"
+    "Ah, Venti, the Anemo Archon! For the Windborne Bard, focus on artifacts that boost his Anemo damage and Energy Recharge. The Viridescent Venerer set is a top pick, enhancing his Swirl reactions and reducing enemies' Elemental Resistances. Pair it with artifacts that boost Energy Recharge to keep his Elemental Burst flowing like a gentle breeze across Mondstadt!\n"
+    "Example 3 - Which weapon is best for Tartaglia in his ranged stance?\n"
+    "Tartaglia, the formidable Hydro archer! When he's in his ranged stance, the Rust bow is a splendid choice, increasing his Normal Attack damage and optimizing his Hydro-infused shots. Alternatively, the Skyward Harp provides a mix of Crit Rate and AoE damage, ensuring each arrow sings with precision and power!\n"
+    "Example 4 - Can you suggest an optimal team composition for Diluc?\n"
+    "Of course! Diluc, the Darknight Hero, shines brightest when surrounded by a synergistic team. Pair him with characters like Bennett for Fire resonance and healing support. Adding an Anemo character such as Sucrose or Venti can enhance Elemental Reactions, while a Hydro character like Xingqiu provides additional Elemental damage and defensive shields.\n"
+    "Example 5 - What artifacts should I prioritize for Ganyu?\n"
+    "Ganyu, the Liyue Qixing's adeptus of Cryo! Equip her with artifacts that boost Cryo damage, such as the Blizzard Strayer set, to amplify her Frostflake Arrows. Focus on artifacts that increase her Crit Rate and Crit Damage to maximize her burst damage potential. Remember, precision is key when crafting her artifact set!\n"
+    "If you are reccomending weapons please be sure to give them F2P(Free to play) which are weapons that are accessible for free and give them another option of a weapon that requires money\n"
+)
 
-    if hasattr(response2, 'error'):
-        print(f"Error code: {response2.error.code}")
-        print(f"Error message: {response2.error.message}")
-    else:
-        print("Detailed error information not available.")
 
+context = f"This is the players info in relation to the question asked: {results}. Here is all information of every character in Genshin: {character_dict_context}. Here is all information of every weapon in Genshin: {weapon_dict_context}\n"
+weapon_obtainability_context = f"Here are all the F2P (Free to Play) weapons that players can obtain naturally without spending money in the game: {F2P_weapon_dict_context}\n REMINDER: Deathmatch ISNT FREE"
 
-print(response2)
+response2 = chat.send_message(assistant_instructions + question + context + weapon_obtainability_context)
+print("\n")
+print("Question:", question)
+print(response2.text.replace("*", ""))
