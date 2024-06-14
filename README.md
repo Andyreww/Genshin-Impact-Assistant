@@ -11,7 +11,9 @@ Genshin Impact: Assistant is a project that will utilize OpenAI and EnkaNetworks
 
 ## To-Do:
 - Create better documentation
-- Create an app using FlutterFlow
+
+## Future Plans:
+- Create an app
 - Work on implementing more features
 
 ## Plan:
