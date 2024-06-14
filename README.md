@@ -2,16 +2,25 @@
 Genshin Impact: Assistant is a project that will utilize OpenAI and EnkaNetworks API in order to give users based recommendations for their in-game characters tailored for them.
 
 ## What Im currently working on
-- Utilizing Google Gemini AI to give us information
-
-**UPDATE**: Switching direction from OpenAI API -> Gemini API since OpenAI isnt free to use
-
-## To-Do:
 - Clean Code/Fix Bugs
 - Create Test/Edge Cases
+
+**UPDATE (6/11/24)**: Switching direction from OpenAI API -> Gemini API since OpenAI isnt free to use
+
+**UPDATE (6/13/24)**: The AI is functional however it might output incorrect answers. However it works as intended and the information outputted is quite stable
+
+## To-Do:
 - Create better documentation
-- Create an app using FlutterFlow
+
+## Future Plans:
+- Create an app
 - Work on implementing more features
+
+## Suggestions from Friends:
+- Weapon reccomendations are niche
+- Some team compositions aren't useful
+- Some characters title is incorrect
+- Gather more context from online sources
 
 ## Plan:
 
