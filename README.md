@@ -16,6 +16,12 @@ Genshin Impact: Assistant is a project that will utilize OpenAI and EnkaNetworks
 - Create an app
 - Work on implementing more features
 
+## Suggestions from Friends:
+- Weapon reccomendations are niche
+- Some team compositions aren't useful
+- Some characters title is incorrect
+- Gather more context from online sources
+
 ## Plan:
 
 I am currently a University Student so I will work on this whenever I have the time however I aim to incoporate a new function or clean code once per day.
